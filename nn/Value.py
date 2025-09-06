@@ -2,6 +2,10 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+EPS = 1e-12
+SQRT_2_OVER_PI = math.sqrt(2.0 / math.pi)
+
 class Value:
     def __init__(self, data, _children=(), _op='', expression='', label=''):
         self.data = data
@@ -113,6 +117,26 @@ class Value:
         
         out._backward = _backward
         return out
+    
+    def log(self):
+        # safe log (clamps at EPS in forward; derivative uses same clamp)
+        x = max(self.data, EPS)
+        out = Value(math.log(x), (self,), 'log', f"log({self.expression})")
+        def _backward():
+            self.grad += (1.0 / max(self.data, EPS)) * out.grad
+        out._backward = _backward
+        return out
+
+    def relu(self):
+        out = Value(self.data if self.data > 0.0 else 0.0, (self,), 'ReLU', f"relu({self.expression})")
+        def _backward():
+            self.grad += (out.grad if self.data > 0.0 else 0.0)
+        out._backward = _backward
+        return out
+
+    def sigmoid(self):
+        # σ(x) = 1 / (1 + e^{-x}); autograd flows through existing ops
+        return Value(1.0) / (Value(1.0) + (-self).exp())
     
     def backward(self):
         # Topological order all of the children in the graph
