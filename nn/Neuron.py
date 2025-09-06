@@ -1,4 +1,4 @@
-from engin.value import Value
+from nn.Value import Value
 import random
 
 class Neuron():

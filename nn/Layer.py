@@ -1,4 +1,4 @@
-from net.Neuron import Neuron
+from nn.Neuron import Neuron
 
 class Layer:
     def __init__(self, nin, nout):

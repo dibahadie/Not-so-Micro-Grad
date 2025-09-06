@@ -1,0 +1,12 @@
+README.md
+setup.py
+Started_with_autograd.egg-info/PKG-INFO
+Started_with_autograd.egg-info/SOURCES.txt
+Started_with_autograd.egg-info/dependency_links.txt
+Started_with_autograd.egg-info/requires.txt
+Started_with_autograd.egg-info/top_level.txt
+nn/Layer.py
+nn/MLP.py
+nn/Neuron.py
+nn/Value.py
+nn/__init__.py
