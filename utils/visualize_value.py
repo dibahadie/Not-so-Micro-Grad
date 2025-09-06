@@ -34,7 +34,7 @@ def visualize(root):
 
     for n in nodes:
         uid = str(id(n))
-        label = f"{n.expression} | data {n.data:.4f} | grad {n.grad:.4f}"
+        label = f"data {n.data:.4f} | grad {n.grad:.4f}"
         dot.node(name=uid, label=label, shape='box')
 
         if n._op:
