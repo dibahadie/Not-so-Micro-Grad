@@ -15,6 +15,7 @@ class Value:
         self.label = label
         self.grad = 0
         self._backward = lambda: None
+        self.shape = self.data.shape
     
     def __repr__(self):
         return f"Value(data={self.data}, grad={self.grad})"
