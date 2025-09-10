@@ -177,6 +177,61 @@ class Tensor():
     def sigmoid(self):
         return Tensor(1.0) / (Tensor(1.0) + (-self).exp())
     
+
+    def matmul(self, other):
+        other = other if isinstance(other, Tensor) else Tensor(np.array(other))
+        
+        # Check if shapes are compatible for matrix multiplication
+        if self.data.ndim == 1:
+            self_data = self.data.reshape(1, -1)
+        else:
+            self_data = self.data
+            
+        if other.data.ndim == 1:
+            other_data = other.data.reshape(-1, 1)
+        else:
+            other_data = other.data
+        
+        # Perform matrix multiplication
+        out_data = np.matmul(self_data, other_data)
+        out = Tensor(out_data, (self, other), '@', f"({self.expression} @ {other.expression})")
+        
+        def _backward():
+            # Handle gradient for self: dL/dA = dL/dC · B^T
+            if self.data.ndim == 1:
+                # If self was 1D, we need to handle the gradient appropriately
+                grad_self = np.matmul(out.grad, other_data.T)
+                self.grad += grad_self.flatten()  # Convert back to 1D
+            else:
+                grad_self = np.matmul(out.grad, other_data.T)
+                # Ensure gradient shape matches original self shape
+                if grad_self.shape != self.shape:
+                    # Sum over extra dimensions if needed (for broadcasting)
+                    axes = tuple(range(len(grad_self.shape) - len(self.shape)))
+                    grad_self = np.sum(grad_self, axis=axes)
+                self.grad += grad_self
+            
+            # Handle gradient for other: dL/dB = A^T · dL/dC
+            if other.data.ndim == 1:
+                # If other was 1D, we need to handle the gradient appropriately
+                grad_other = np.matmul(self_data.T, out.grad)
+                other.grad += grad_other.flatten()  # Convert back to 1D
+            else:
+                grad_other = np.matmul(self_data.T, out.grad)
+                # Ensure gradient shape matches original other shape
+                if grad_other.shape != other.shape:
+                    # Sum over extra dimensions if needed (for broadcasting)
+                    axes = tuple(range(len(grad_other.shape) - len(other.shape)))
+                    grad_other = np.sum(grad_other, axis=axes)
+                other.grad += grad_other
+        
+        out._backward = _backward
+        return out
+
+    # Also add the __matmul__ operator for convenience
+    def __matmul__(self, other):
+        return self.matmul(other)
+
     def backward(self):
         # Topological order all of the children in the graph
         topo = []
@@ -197,3 +252,5 @@ class Tensor():
         # Go one variable at a time and apply the chain rule
         for node in reversed(topo):
             node._backward()
+
+

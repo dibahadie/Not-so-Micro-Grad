@@ -1,4 +1,4 @@
-from nn.Layer import Layer
+from nn.Layers.Layer import Layer
 
 class MLP():
     def __init__(self, nin, nouts):
